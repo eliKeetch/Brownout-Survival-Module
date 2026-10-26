@@ -12,23 +12,25 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Adafruit_FRAM_I2C fram = Adafruit_FRAM_I2C();
 
-// ===== Pico pin assignments =====
-const int BROWNOUT_PIN = A0;        // Pico GP26
+//  Pico pin assignments 
+const int BROWNOUT_PIN = A0;        // GP26_A0
 const int LED_PIN = 15;             // GP15
 const int RESET_BUTTON_PIN = 14;    // GP14
 
-// ===== Pico ADC thresholds (12-bit: 0-4095) =====
-// Tune these after testing on your actual setup
+// Pico ADC THREASHOLDS
+// Tune these for modifying brownout level
 const int BROWNOUT_THRESHOLD_LOW  = 3600;
 const int BROWNOUT_THRESHOLD_HIGH = 3800;
 
+// FRAM
 const uint32_t COMMIT_VALUE = 0xBEEF1234;
 const uint32_t MAX_REASONABLE_COUNTER = 1000000UL;
-
-const uint16_t SLOT_SIZE = 24;
+const uint16_t SLOT_SIZE = 24; // increase the memory
 const uint16_t SLOT_A_BASE = 0;
 const uint16_t SLOT_B_BASE = SLOT_SIZE;
 
+
+//Variables
 uint8_t currentState = 0;
 uint32_t counter = 0;
 bool brownoutLatched = false;
@@ -43,7 +45,7 @@ unsigned long lastDisplay = 0;
 unsigned long lastSaveTimeUs = 0;
 unsigned long lastSaveTimeMs = 0;
 
-const unsigned long SAVE_COOLDOWN_MS = 800;
+const unsigned long SAVE_COOLDOWN_MS = 800; // to prevent back to back saving loops on brownouts close to the threashold
 
 // reset button debounce
 bool lastButtonReading = HIGH;
@@ -70,18 +72,17 @@ void updateDisplay(int brownoutValue) {
   if (!oledReady) return;
 
   display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
 
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(1);
   display.setCursor(0, 0);
+  display.println("PROTECTED DEVICE");
   display.print("COUNT: ");
   display.println(counter);
+ 
 
   display.print("STATE: ");
   display.println(currentState);
-
-  display.print("SEQ: ");
-  display.println(currentSequence);
 
   display.print("ADC: ");
   display.println(brownoutValue);
@@ -276,7 +277,7 @@ void setup() {
       delay(150);
     }
   }
-  Serial.println("FRAM detected");
+  Serial.println("FRAM found");
 
   delay(200);
   Serial.print("Startup ADC estimate: ");
@@ -302,7 +303,7 @@ void setup() {
 
   updateDisplay(brownoutValue);
 
-  Serial.println("Setup complete");
+  Serial.println("Setup done");
 }
 
 void loop() {
